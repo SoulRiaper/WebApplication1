@@ -20,15 +20,18 @@ namespace MainService
         //метод для добавления нового пользователя
         public string addNewUser(User newUser)
         {
+            //проверка на заполнение полей класса юзера
             if ((newUser.Name != "") && (newUser.Email != ""))
             {
                 foreach(User user in users)
                 {
+                    //проверка на добавление уже существующего пользователя
                     if(user.Email == newUser.Email)
                     {
                         return "User already exists";
                     }
                 }
+                //если все проверки прошли добавляем пользователя
                 users.Add(newUser);
                 return "User successfully created";
             }
@@ -42,6 +45,7 @@ namespace MainService
         {
             foreach(User user in users)
             {
+                //находим пользователя в списке чтоб все данные совпадали 
                 if((user.Name == userForDelete.Name) && (user.Email == userForDelete.Email))
                 {
                     users.Remove(user);
@@ -56,8 +60,10 @@ namespace MainService
         {
             foreach(User user in users)
             {
+                //находим юзера по имейлу и удаляем(тк емаил уникальный, смотри алгоритм добавления юзера)
                 if(user.Email == userForEdit.Email)
                 {
+                    //меняем данные пользователя
                     users.Remove(user);
                     users.Add(userForEdit);
                     return "User seccessfully edited";

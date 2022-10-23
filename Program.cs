@@ -39,8 +39,10 @@ app.MapPost("/userDelete", (User user) =>
 //обработчик измен€ющий данные пользовател€
 app.MapPost("/userEdit", (User user) =>
 {
+    //вызываем метод дл€ полученного с запроса юзера
     string result = mainServiceClass.editUser(user);
 
+    //возвращаем сериализованное сообщение
     return JsonSerializer.Serialize(new Message(result));
 });
 app.Run();
