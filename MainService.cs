@@ -1,13 +1,16 @@
-﻿using System.Text.Json;
+﻿using PostgresConnect;
+using System.Text.Json;
 
 namespace MainService
 {
     public class MainServiceClass
     {
+        private UsersContext _db = new UsersContext();
+
         //метод для получения всех пользователей
         public List<User> getAllUsers()
         {
-            return users;
+            return _db.Users.ToList(); ;
         }
 
         //метод длясериализации обьектов
@@ -20,19 +23,26 @@ namespace MainService
         //метод для добавления нового пользователя
         public string addNewUser(User newUser)
         {
+            //UPD используем конструкцию this. ()для того чтоб не переписывать код для получения списка пользователей)
+            //UPD получаем список
+            var users = this.getAllUsers();
+
             //проверка на заполнение полей класса юзера
             if ((newUser.Name != "") && (newUser.Email != ""))
             {
-                foreach(User user in users)
+                foreach (User user in users)
                 {
                     //проверка на добавление уже существующего пользователя
-                    if(user.Email == newUser.Email)
+                    if (user.Email == newUser.Email)
                     {
                         return "User already exists";
                     }
                 }
                 //если все проверки прошли добавляем пользователя
-                users.Add(newUser);
+                //UPD сначала добавляем его в пространство efc(с помощью Add)
+                _db.Add(newUser);
+                //UPD сохраняем в бд
+                _db.SaveChanges();
                 return "User successfully created";
             }
 
@@ -43,12 +53,18 @@ namespace MainService
         //метод для удаления пользователя
         public string deleteUser(User userForDelete)
         {
-            foreach(User user in users)
+            //UPD аналогичная конструкция смотри метод addNewUser
+            var users = this.getAllUsers();
+
+            foreach (User user in users)
             {
                 //находим пользователя в списке чтоб все данные совпадали 
-                if((user.Name == userForDelete.Name) && (user.Email == userForDelete.Email))
+                if ((user.Name == userForDelete.Name) && (user.Email == userForDelete.Email))
                 {
-                    users.Remove(user);
+                    //UPD ремуваем из поля efc (Remove)
+                    _db.Users.Remove(user);
+                    //UPD сохраняем
+                    _db.SaveChanges();
                     return "User seccessfully deleted";
                 }
             }
@@ -56,50 +72,25 @@ namespace MainService
         }
 
         //метод для редактирования пользователя
-        public string editUser(User userForEdit)
+        public string editUser(UserForEdit userForEdit)
         {
-            foreach(User user in users)
+            //UPD используем такую конструкцию для нахождения одного юзера из бд
+            User user = _db.Find<User>(userForEdit.Id);
+
+            //UPD обязательная проверка для редактирования пользователя
+            if (user != null)
             {
-                //находим юзера по имейлу и удаляем(тк емаил уникальный, смотри алгоритм добавления юзера)
-                if(user.Email == userForEdit.Email)
-                {
-                    //меняем данные пользователя
-                    users.Remove(user);
-                    users.Add(userForEdit);
-                    return "User seccessfully edited";
-                }
+                //меняем данные пользователя
+                user.Email = userForEdit.EmailNewValue;
+                user.Name = userForEdit.NameNewValue;
+
+                //UPD используем метод для обновления данных юзера
+                _db.Users.Update(user);
+                _db.SaveChanges();
+
+                return "User seccessfully edited";
             }
             return "Can`t find user";
-        }
-
-        //источник информации (лист Юзер)
-        List<User> users = new List<User>
-        {
-            new User("roman", "123123"),
-            new User("artem", "123123"),
-            new User("dimon", "123123"),
-        };
-    }
-
-    //класс для пользователя
-    public class User
-    {
-        public string Name { get; }
-        public string Email { get; }
-        public User(string name, string email)
-        {
-            this.Name = name;
-            this.Email = email;
-        }
-    }
-
-    //класс для сообщений
-    public class Message
-    {
-        public string messageValue { get; }
-        public Message(string value)
-        {
-            this.messageValue = value;
         }
     }
 }

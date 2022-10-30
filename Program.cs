@@ -1,6 +1,10 @@
 using MainService;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
+//плохой пример (в контроллере (файле с post и get обработчиками) не стоит разрешать пользоватьс€ классами вз-ми с бд)
+//сделано дл€ простоты понимани€
+using PostgresConnect;
+
 
 //импорт класса с сервисами
 MainServiceClass mainServiceClass = new MainServiceClass();
@@ -37,12 +41,14 @@ app.MapPost("/userDelete", (User user) =>
 });
 
 //обработчик измен€ющий данные пользовател€
-app.MapPost("/userEdit", (User user) =>
+app.MapPost("/userEdit", (UserForEdit userForEdit) =>
 {
     //вызываем метод дл€ полученного с запроса юзера
-    string result = mainServiceClass.editUser(user);
+    //UPD тк был изменен класс эдита будем передавать ему не просто юзера, а изначальные его данные и желаемые
+    string result = mainServiceClass.editUser(userForEdit);
 
     //возвращаем сериализованное сообщение
     return JsonSerializer.Serialize(new Message(result));
 });
+
 app.Run();
